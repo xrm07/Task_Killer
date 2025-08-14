@@ -26,6 +26,7 @@ Turn natural-language (Japanese) instructions into TaskWarrior commands via a ti
 Task_Killer streamlines day-to-day TaskWarrior operations in two ways:
 
 - Helper script: `Task_Killer/scripts/tw.sh` normalizes dates and priorities, finds tasks by fuzzy title, updates a progress UDA, and performs common operations non-interactively.
+ - Helper script: `Task_Killer/scripts/tw.sh` normalizes dates and priorities, allows optional project assignment, finds tasks by fuzzy title, updates a progress UDA, and performs common operations non-interactively.
 - AI prompt guide: `Task_Killer/GEMINI.md` documents how to translate Japanese free-form text into executable TaskWarrior commands (Gemini CLI assumed), including few-shot examples and normalization rules.
 
 ## Features
@@ -90,9 +91,9 @@ Task_Killer/scripts/tw.sh list
 `tw.sh` wraps common TaskWarrior operations and prints the command it is about to run.
 
 ```bash
-# Add a task (date/priority will be normalized)
+# Add a task (date/priority will be normalized; optional project)
 Task_Killer/scripts/tw.sh \
-  add --title "Formal Languages and Automata" --due "12-30-23:50" --priority 高め
+  add --title "Formal Languages and Automata" --due "12-30-23:50" --priority 高め --project "Website"
 
 # Update progress (0–100)
 Task_Killer/scripts/tw.sh \
@@ -105,6 +106,7 @@ Task_Killer/scripts/tw.sh done  --title "Formal Languages and Automata"
 
 # List / info
 Task_Killer/scripts/tw.sh list
+Task_Killer/scripts/tw.sh list --project "Website"
 Task_Killer/scripts/tw.sh info --title "Formal Languages and Automata"
 ```
 
@@ -124,9 +126,9 @@ gemini    # follow the guidance in Task_Killer/GEMINI.md
 ## Examples
 
 ```bash
-# Example 1: Add (auto-completes year and normalizes to ISO-like format)
+# Example 1: Add with project (auto-completes year and normalizes to ISO-like format)
 Task_Killer/scripts/tw.sh \
-  add --title "Formal Languages and Automata" --due "12-30-23:50" --priority 高め
+  add --title "Formal Languages and Automata" --due "12-30-23:50" --priority 高め --project "Website"
 
 # Example 2: Mark as in progress
 Task_Killer/scripts/tw.sh start --title "Formal Languages and Automata"
@@ -136,6 +138,10 @@ Task_Killer/scripts/tw.sh progress --title "Formal Languages and Automata" --val
 
 # Example 4: Show current task list
 Task_Killer/scripts/tw.sh list
+Task_Killer/scripts/tw.sh list --project "Website"
+
+# Example 5: Set/change project for an existing task
+Task_Killer/scripts/tw.sh project --title "Formal Languages and Automata" --project "Website"
 ```
 
 ## Project Structure

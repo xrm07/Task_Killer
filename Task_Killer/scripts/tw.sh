@@ -2,10 +2,11 @@
 set -euo pipefail
 
 # Simple TaskWarrior helper for Gemini CLI
-# - Adds tasks with due/priority normalization
+# - Adds tasks with due/priority normalization (optional project)
 # - Updates progress (UDA progress: 0-100)
+# - Sets/changes project by title or id
 # - Starts/stops/done tasks by title lookup
-# - Lists and shows info
+# - Lists (optionally filtered by project) and shows info
 
 require_cmd() {
   if ! command -v "$1" >/dev/null 2>&1; then
@@ -92,7 +93,7 @@ normalize_datetime() {
 find_candidates() {
   local query="$1"
   task rc.verbose:off status:pending export \
-    | jq -r --arg q "$query" '.[] | select(.description | contains($q)) | "\(.id)\t\(.description)"'
+    | jq -r --arg q "$query" '.[] | select(.description | contains($q)) | "\(.id)\t\(.project // "-")\t\(.description)"'
 }
 
 # Get first matching id by description substring
@@ -120,12 +121,13 @@ normalize_priority() {
 }
 
 cmd_add() {
-  local title="" due_raw="" priority_raw=""
+  local title="" due_raw="" priority_raw="" project_raw=""
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --title) title="$2"; shift 2;;
       --due) due_raw="$2"; shift 2;;
       --priority) priority_raw="$2"; shift 2;;
+      --project) project_raw="$2"; shift 2;;
       *) fail "Unknown arg for add: $1";;
     esac
   done
@@ -137,8 +139,35 @@ cmd_add() {
   due_iso=$(normalize_datetime "$due_raw")
   priority=$(normalize_priority "$priority_raw")
 
-  log "task rc.confirmation:no add \"$title\" due:$due_iso priority:$priority"
-  task rc.confirmation:no add "$title" due:"$due_iso" priority:"$priority"
+  if [[ -n "$project_raw" ]]; then
+    log "task rc.confirmation:no add \"$title\" project:$project_raw due:$due_iso priority:$priority"
+    task rc.confirmation:no add "$title" project:"$project_raw" due:"$due_iso" priority:"$priority"
+  else
+    log "task rc.confirmation:no add \"$title\" due:$due_iso priority:$priority"
+    task rc.confirmation:no add "$title" due:"$due_iso" priority:"$priority"
+  fi
+}
+
+cmd_project() {
+  local title="" id="" project_raw=""
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --title) title="$2"; shift 2;;
+      --id) id="$2"; shift 2;;
+      --project) project_raw="$2"; shift 2;;
+      *) fail "Unknown arg for project: $1";;
+    esac
+  done
+  [[ -n "$project_raw" ]] || fail "--project is required"
+
+  if [[ -z "$id" ]]; then
+    [[ -n "$title" ]] || fail "--title or --id is required"
+    id=$(first_id_by_description "$title")
+  fi
+  [[ -n "$id" ]] || { find_candidates "$title" | sed '1s/^/Multiple or no matches (ID\tProject\tDescription):\n/'; exit 2; }
+
+  log "task rc.confirmation:no $id modify project:$project_raw"
+  task rc.confirmation:no "$id" modify project:"$project_raw"
 }
 
 cmd_progress() {
@@ -159,7 +188,7 @@ cmd_progress() {
     [[ -n "$title" ]] || fail "--title or --id is required"
     id=$(first_id_by_description "$title")
   fi
-  [[ -n "$id" ]] || { find_candidates "$title" | sed '1s/^/Multiple or no matches:\n/'; exit 2; }
+  [[ -n "$id" ]] || { find_candidates "$title" | sed '1s/^/Multiple or no matches (ID\\tProject\\tDescription):\n/'; exit 2; }
 
   log "task rc.confirmation:no $id modify progress:$value"
   task rc.confirmation:no "$id" modify progress:"$value"
@@ -179,14 +208,25 @@ cmd_start_stop_done() {
     [[ -n "$title" ]] || fail "--title or --id is required"
     id=$(first_id_by_description "$title")
   fi
-  [[ -n "$id" ]] || { find_candidates "$title" | sed '1s/^/Multiple or no matches:\n/'; exit 2; }
+  [[ -n "$id" ]] || { find_candidates "$title" | sed '1s/^/Multiple or no matches (ID\\tProject\\tDescription):\n/'; exit 2; }
 
   log "task rc.confirmation:no $id $action"
   task rc.confirmation:no "$id" "$action"
 }
 
 cmd_list() {
-  task next | cat
+  local project_filter=""
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --project) project_filter="$2"; shift 2;;
+      *) fail "Unknown arg for list: $1";;
+    esac
+  done
+  if [[ -n "$project_filter" ]]; then
+    task project:"$project_filter" list | cat
+  else
+    task next | cat
+  fi
 }
 
 cmd_info() {
@@ -202,7 +242,7 @@ cmd_info() {
     [[ -n "$title" ]] || fail "--title or --id is required"
     id=$(first_id_by_description "$title")
   fi
-  [[ -n "$id" ]] || { find_candidates "$title" | sed '1s/^/Multiple or no matches:\n/'; exit 2; }
+  [[ -n "$id" ]] || { find_candidates "$title" | sed '1s/^/Multiple or no matches (ID\\tProject\\tDescription):\n/'; exit 2; }
   task "$id" info | cat
 }
 
@@ -211,12 +251,13 @@ usage() {
 tw.sh - TaskWarrior helper
 
 Commands:
-  add --title "TITLE" --due "12-30-23:50" --priority H|M|L
+  add --title "TITLE" --due "12-30-23:50" --priority H|M|L [--project NAME]
+  project --title "TITLE" --project NAME
   progress --title "TITLE" --value 0-100
   start --title "TITLE"
   stop --title "TITLE"
   done --title "TITLE"
-  list
+  list [--project NAME]
   info --title "TITLE"
 
 Notes:

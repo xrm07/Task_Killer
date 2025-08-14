@@ -10,9 +10,9 @@
 
 ### 全体方針（Gemini への指示）
 
-Gemini は、以下のような日本語の自然言語入力に対して、TaskWarrior のコマンドを組み立てて「実行可能な形で提示し」、そのまま実行してください。実行前に必ず生成コマンドを表示し、`rc.confirmation:no` を付与して対話確認を省略します。
+Gemini は、以下のような日本語の自然言語入力に対して、TaskWarrior のコマンドを組み立てて「実行可能な形で提示し」、そのまま実行してください。実行前に必ず生成コマンドを表示し、`rc.confirmation:no` を付与して対話確認を省略します。必要に応じてプロジェクト（`project:<NAME>`）も付与してください。
 
-- 例: 「タスクは形式言語とオートマトンで，締切は12-30-23:50，優先度は高め」
+- 例: 「タスクは形式言語とオートマトンで，締切は12-30-23:50，優先度は高め，プロジェクトはWebsite」
   - 生成方針: `task add` を使用し、締切は ISO 形式（`YYYY-MM-DDTHH:MM`、秒は任意）へ正規化、優先度は H/M/L に正規化。
   - 実行前に生成コマンドを表示し、続けて実行結果も表示。
 
@@ -35,9 +35,9 @@ Gemini は、以下のような日本語の自然言語入力に対して、Task
 課題名（説明文）で特定します。曖昧一致で複数候補が出る場合は一覧を提示し、ユーザーに確認を求めます。スクリプト的には JSON エクスポートと `jq` を併用すると堅牢です。
 
 ```
-# 候補検索（曖昧一致）
+# 候補検索（曖昧一致）: ID, Project, Description を表示（Project 未設定は -）
 task rc.verbose:off export \
-  | jq -r '.[] | select(.description | test("形式言語とオートマトン")) | "\(.id)\t\(.description)"'
+  | jq -r '.[] | select(.description | test("形式言語とオートマトン")) | "\(.id)\t\(.project // "-")\t\(.description)"'
 
 # 単一特定（最初の1件の id を取得）
 TARGET_ID="$(task rc.verbose:off export \
@@ -46,9 +46,9 @@ TARGET_ID="$(task rc.verbose:off export \
 
 ### コマンド・テンプレート
 
-- 追加（締切・優先度あり）
+- 追加（締切・優先度あり、必要に応じてプロジェクト）
 ```
-task rc.confirmation:no add "<タイトル>" due:<YYYY-MM-DDTHH:MM> priority:<H|M|L>
+task rc.confirmation:no add "<タイトル>" [project:<プロジェクト名>] due:<YYYY-MM-DDTHH:MM> priority:<H|M|L>
 ```
 
 - 進捗（達成度）の更新
@@ -71,11 +71,11 @@ task <ID> info
 
 ### 日本語入力からの例（Few-shot）
 
-- 入力: 「タスクは形式言語とオートマトンで，締切は12-30-23:50，優先度は高め」
+- 入力: 「タスクは形式言語とオートマトンで，締切は12-30-23:50，優先度は高め，プロジェクトはWebsite」
   - 生成/実行:
   ```bash
   # 今年または翌年の補完を行った上で（例: 2025 年想定）
-  task rc.confirmation:no add "形式言語とオートマトン" due:2025-12-30T23:50 priority:H
+  task rc.confirmation:no add "形式言語とオートマトン" project:Website due:2025-12-30T23:50 priority:H
   ```
 
 - 入力: 「『形式言語とオートマトン』を進行中にして」
@@ -90,6 +90,13 @@ task <ID> info
   ```bash
   TARGET_ID="$(task rc.verbose:off export | jq -r 'map(select(.description | test("形式言語とオートマトン")))[0].id')"
   task rc.confirmation:no ${TARGET_ID} modify progress:50
+  ```
+
+- 入力: 「『形式言語とオートマトン』のプロジェクトを Website に変更」
+  - 生成/実行:
+  ```bash
+  TARGET_ID="$(task rc.verbose:off export | jq -r 'map(select(.description | test("形式言語とオートマトン")))[0].id')"
+  task rc.confirmation:no ${TARGET_ID} modify project:Website
   ```
 
 - 入力: 「今のタスクリストを表示」
@@ -109,7 +116,7 @@ task <ID> info
 
 - 実行前に必ず生成コマンドを表示してから実行する。
 - 実行後は TaskWarrior の標準出力をそのまま表示し、要約も 1 行で付ける。
-- 複数候補がある場合は ID と説明の表を提示してユーザーに確認を求め、確定後に実行する。
+- 複数候補がある場合は ID / Project / Description の表を提示してユーザーに確認を求め、確定後に実行する（Project 未設定は `-`）。
 
 ### セーフティ
 
@@ -118,9 +125,9 @@ task <ID> info
 
 ### 使い方（人間向け）
 
-1. このディレクトリで Gemini CLI を起動します。
+1. リポジトリのルートディレクトリで Gemini CLI を起動します。
 ```bash
-cd /home/xrm07/Task_Killer
+cd /path/to/Task_Killer
 gemini
 ```
 2. 日本語で自由に指示してください。
