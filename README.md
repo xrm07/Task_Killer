@@ -37,7 +37,7 @@ If using an AI CLI (e.g., Gemini CLI), set it up separately. See `Task_Killer/GE
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/Task_Killer.git
+git clone https://github.com/xrm07/Task_Killer.git
 cd Task_Killer
 
 # Make the helper executable (if needed)
