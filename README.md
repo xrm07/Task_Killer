@@ -1,6 +1,25 @@
 # Task_Killer
 
+[![License: MIT](https://img.shields.io/github/license/xrm07/Task_Killer)](LICENSE) [![CI](https://img.shields.io/github/actions/workflow/status/xrm07/Task_Killer/ci.yml?label=CI)](#) ![TaskWarrior](https://img.shields.io/badge/TaskWarrior-2.6%2B-important) ![Bash](https://img.shields.io/badge/Bash-5%2B-blue)
+
 Turn natural-language (Japanese) instructions into TaskWarrior commands via a tiny helper script and AI prompting.
+
+## Table of Contents
+
+- [Overview](#overview)
+- [Features](#features)
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Quickstart](#quickstart)
+- [Usage (script)](#usage-script)
+- [AI Integration](#ai-integration-gemini-cli-example)
+- [Examples](#examples)
+- [Project Structure](#project-structure)
+- [Support and Limitations](#support-and-limitations)
+- [Related Files](#related-files)
+- [Contributing](#contributing)
+- [License](#license)
+- [Troubleshooting](#troubleshooting)
 
 ## Overview
 
@@ -45,6 +64,25 @@ chmod +x Task_Killer/scripts/tw.sh
 
 # Optional: add to PATH for convenience (consider adding to your shell profile)
 export PATH="$PWD/Task_Killer/scripts:$PATH"
+```
+
+## Quickstart
+
+```bash
+# 1) Clone and enter the repo
+git clone https://github.com/xrm07/Task_Killer.git
+cd Task_Killer
+
+# 2) Install dependencies (example for Debian/Ubuntu)
+sudo apt-get update && sudo apt-get install -y taskwarrior jq
+
+# 3) Make the helper executable
+chmod +x Task_Killer/scripts/tw.sh
+
+# 4) Add a task and list
+Task_Killer/scripts/tw.sh \
+  add --title "Sample" --due "12-30-23:50" --priority 高め
+Task_Killer/scripts/tw.sh list
 ```
 
 ## Usage (script)
@@ -111,6 +149,19 @@ Task_Killer/
    └─ scripts/
       └─ tw.sh
 ```
+
+## Support and Limitations
+
+- **Supported environments**: Linux, bash 5.x, TaskWarrior 2.6.x, jq 1.6
+- **Limitations**:
+  - Fuzzy matching by description may return multiple or unintended candidates
+  - Timezone and locale differences can affect date parsing and scheduling
+  - Ensure UDA (e.g., `uda.progress`) is configured in `~/.taskrc`
+
+## Related Files
+
+- CHANGELOG: `CHANGELOG.md` (if present)
+- Contributing Guide: `CONTRIBUTING.md` (if present)
 
 ## Contributing
 
