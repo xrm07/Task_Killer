@@ -105,6 +105,18 @@ task <ID> info
   task next
   ```
 
+- 入力: 「未完了のタスク一覧をマークダウンで保存（保存先は reports/open_tasks.md）」
+  - 生成/実行（必要ならディレクトリを作成）:
+  ```bash
+  mkdir -p reports
+  task rc.verbose:off status:pending export \
+    | jq -r '
+      def esc: if . == null then "-" else (.|tostring|gsub("\\|"; "\\|")) end;
+      .[] | "| \(.id) | \(.project // "-") | \(.priority // "-") | \(.due // "-") | \(.progress // "-") | \(.description // "-") |"' \
+    | sed '1i\\| ID | Project | Priority | Due | Progress | Description |\n|---:|:--------|:--------:|:----|---------:|:------------|\n' \
+    > reports/open_tasks.md
+  ```
+
 - 入力: 「『形式言語とオートマトン』を完了に」
   - 生成/実行:
   ```bash

@@ -20,6 +20,7 @@ Turn natural-language (Japanese) instructions into TaskWarrior commands via a ti
 - [Contributing](#contributing)
 - [License](#license)
 - [Troubleshooting](#troubleshooting)
+ - [Reports (Markdown export)](#reports-markdown-export)
 
 ## Overview
 
@@ -108,6 +109,10 @@ Task_Killer/scripts/tw.sh done  --title "Formal Languages and Automata"
 Task_Killer/scripts/tw.sh list
 Task_Killer/scripts/tw.sh list --project "Website"
 Task_Killer/scripts/tw.sh info --title "Formal Languages and Automata"
+
+# Export open tasks to a Markdown file (optionally filter by project)
+Task_Killer/scripts/tw.sh report --output ./reports/open_tasks.md
+Task_Killer/scripts/tw.sh report --output ./reports/website_open_tasks.md --project "Website"
 ```
 
 Tips:
@@ -142,6 +147,10 @@ Task_Killer/scripts/tw.sh list --project "Website"
 
 # Example 5: Set/change project for an existing task
 Task_Killer/scripts/tw.sh project --title "Formal Languages and Automata" --project "Website"
+
+# Example 6: Export open tasks to Markdown in a custom path
+Task_Killer/scripts/tw.sh report --output ./reports/open_tasks.md
+Task_Killer/scripts/tw.sh report --output ./reports/website_open_tasks.md --project "Website"
 ```
 
 ## Project Structure
