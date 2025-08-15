@@ -246,49 +246,6 @@ cmd_info() {
   task "$id" info | cat
 }
 
-cmd_report() {
-  local output_path="" project_filter=""
-  while [[ $# -gt 0 ]]; do
-    case "$1" in
-      --output) output_path="$2"; shift 2;;
-      --project) project_filter="$2"; shift 2;;
-      *) fail "Unknown arg for report: $1";;
-    esac
-  done
-  [[ -n "$output_path" ]] || fail "--output is required (path to markdown file)"
-
-  local tmpfile
-  tmpfile=$(mktemp)
-
-  {
-    printf '# Open Tasks\n\n'
-    printf -- '- Generated: %s\n' "$(date -Is)"
-    if [[ -n "$project_filter" ]]; then
-      printf -- '- Filter: project=%s\n' "$project_filter"
-    fi
-    printf '\n'
-    printf '| ID | Project | Priority | Due | Progress | Description |\n'
-    printf '|---:|:--------|:--------:|:----|---------:|:------------|\n'
-
-    if [[ -n "$project_filter" ]]; then
-      task rc.verbose:off status:pending project:"$project_filter" export \
-        | jq -r '
-          def esc: if . == null then "-" else (.|tostring|gsub("\\|"; "\\|")) end;
-          .[] | "| \(.id) | \(.project // "-") | \(.priority // "-") | \(.due // "-") | \(.progress // "-") | \(.description // "-") |"'
-    else
-      task rc.verbose:off status:pending export \
-        | jq -r '
-          def esc: if . == null then "-" else (.|tostring|gsub("\\|"; "\\|")) end;
-          .[] | "| \(.id) | \(.project // "-") | \(.priority // "-") | \(.due // "-") | \(.progress // "-") | \(.description // "-") |"'
-    fi
-  } >"$tmpfile"
-
-  # Ensure directory exists, then move atomically
-  mkdir -p "$(dirname -- "$output_path")"
-  mv "$tmpfile" "$output_path"
-  log "Markdown report written to: $output_path"
-}
-
 usage() {
   cat <<'USAGE'
 tw.sh - TaskWarrior helper
@@ -302,7 +259,7 @@ Commands:
   done --title "TITLE"
   list [--project NAME]
   info --title "TITLE"
-  report --output /path/to/open_tasks.md [--project NAME]
+  report --output ./reports/open_tasks.md [--project NAME]
 
 Notes:
   - --id can be used instead of --title for progress/start/stop/done/info
@@ -320,7 +277,7 @@ main() {
     done) cmd_start_stop_done done "$@" ;;
     list) cmd_list ;;
     info) cmd_info "$@" ;;
-    report) cmd_report "$@" ;;
+    report) "$(dirname -- "$0")/report_open_tasks.sh" "$@" ;;
     -h|--help|help|"") usage ;;
     *) fail "Unknown command: $cmd" ;;
   esac

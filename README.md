@@ -109,10 +109,6 @@ Task_Killer/scripts/tw.sh done  --title "Formal Languages and Automata"
 Task_Killer/scripts/tw.sh list
 Task_Killer/scripts/tw.sh list --project "Website"
 Task_Killer/scripts/tw.sh info --title "Formal Languages and Automata"
-
-# Export open tasks to a Markdown file (optionally filter by project)
-Task_Killer/scripts/tw.sh report --output ./reports/open_tasks.md
-Task_Killer/scripts/tw.sh report --output ./reports/website_open_tasks.md --project "Website"
 ```
 
 Tips:
@@ -147,10 +143,29 @@ Task_Killer/scripts/tw.sh list --project "Website"
 
 # Example 5: Set/change project for an existing task
 Task_Killer/scripts/tw.sh project --title "Formal Languages and Automata" --project "Website"
+```
 
-# Example 6: Export open tasks to Markdown in a custom path
+## Reports (Markdown export)
+
+Generate a Markdown table of open tasks (optionally filtered by project):
+
+```bash
+# Export open tasks to a Markdown file
 Task_Killer/scripts/tw.sh report --output ./reports/open_tasks.md
+
+# Filter by project
 Task_Killer/scripts/tw.sh report --output ./reports/website_open_tasks.md --project "Website"
+```
+
+Auto-refresh the report when tasks change using TaskWarrior hooks:
+
+```bash
+# Install hooks that regenerate the report on TaskWarrior exit
+chmod +x Task_Killer/scripts/install_taskwarrior_hooks.sh
+Task_Killer/scripts/install_taskwarrior_hooks.sh --report-path ./reports/open_tasks.md
+
+# Optionally keep it project-scoped
+Task_Killer/scripts/install_taskwarrior_hooks.sh --report-path ./reports/website_open_tasks.md --project "Website"
 ```
 
 ## Project Structure
