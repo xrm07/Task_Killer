@@ -166,6 +166,9 @@ Task_Killer/scripts/install_taskwarrior_hooks.sh --report-path ./reports/open_ta
 
 # Optionally keep it project-scoped
 Task_Killer/scripts/install_taskwarrior_hooks.sh --report-path ./reports/website_open_tasks.md --project "Website"
+
+# Optional: push to a specific branch
+Task_Killer/scripts/install_taskwarrior_hooks.sh --report-path ./reports/open_tasks.md --branch main
 ```
 
 ## Project Structure
