@@ -169,6 +169,9 @@ Task_Killer/scripts/install_taskwarrior_hooks.sh --report-path ./reports/website
 
 # Optional: push to a specific branch
 Task_Killer/scripts/install_taskwarrior_hooks.sh --report-path ./reports/open_tasks.md --branch main
+
+# If pushing over HTTPS with a token (recommended for non-interactive hooks):
+# export GIT_SYNC_TOKEN=ghp_your_personal_access_token
 ```
 
 ## Project Structure
